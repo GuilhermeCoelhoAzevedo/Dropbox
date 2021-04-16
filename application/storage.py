@@ -8,6 +8,10 @@ def addDirectory(directory_name):
     blob = bucket.blob(directory_name)
     blob.upload_from_string('', content_type='application/x-www-formurlencoded;charset=UTF-8')
 
+def addFile(path, file):
+    blob = bucket.blob(path + file.filename)
+    blob.upload_from_file(file)
+
 def delete_blob(blob_name):    
     blobs = bucket.list_blobs(prefix=blob_name)
 

@@ -12,6 +12,13 @@ setTimeout(function() {
     $('#flashMessage').fadeOut('fast');
 }, 4000); 
 
+if(document.getElementById('myFile')) {
+    document.getElementById('myFile').onchange = function() {
+        document.getElementById('uploadFileForm').submit()
+        document.getElementById('myFile').value = "";
+    };
+};
+
 function create_folder(){
     if(! validateNameFolder()){
         return false;

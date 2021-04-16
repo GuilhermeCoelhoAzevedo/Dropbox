@@ -1,5 +1,5 @@
 from application import app, client
-from application.storage import blobList, addDirectory, delete_blob, downloadBlob
+from application.storage import blobList, addDirectory, addFile, delete_blob, downloadBlob
 
 from flask import Flask, render_template, request, session, url_for, redirect, flash, json, jsonify, Response
 
@@ -23,12 +23,13 @@ def home(id=""):
 
     if not id:
         id = session['home']
-        
+
     directory = client.get(client.key('Directory', int(id)))
 
     if not directory:
         return render_template('login.html', login=True)
 
+    fileData        = []
     directoryData   = []
     navBar          = []
     user            = client.key('User', int(session['id']))
@@ -37,12 +38,26 @@ def home(id=""):
     query.add_filter("User", "=", user)
     pathData    = list(query.fetch())
 
+    query       = client.query(kind='File')
+    query.add_filter("User", "=", user)
+    files       = list(query.fetch())
+
     blob_list   = blobList(directory["path"], "/")
 
     #GETTING FILES
     for i in blob_list:
         if i.name == directory["path"]:
             continue
+
+        for element in files:
+            if element['path'] == i.name:
+                config = {
+                    "name": i.name[len(directory["path"]):],
+                    "id": element.key.id,
+                    "path": element['path']
+                }
+
+                fileData.append(config)
 
     #GETTING FOLDERS
     for prefix in blob_list.prefixes:
@@ -57,12 +72,13 @@ def home(id=""):
                 directoryData.append(config)
  
     directoryData.sort(key=itemgetter('name'))
+    fileData.sort(key=itemgetter('name'))
     
     startc          = 0
     count           = 0
     path            = ""
     navList         = list(re.finditer('/', directory['path']))
-
+    
     #CREATING NAVEGATION MENU
     for x in navList:
         path  += directory['path'][startc:x.end()]
@@ -82,7 +98,7 @@ def home(id=""):
                 navBar.append({"folder" : folder, "id" : element.key.id, "active" : active})
                 break
 
-    return render_template("home.html", directoryData=directoryData, parentDirectory=directory, navBar=navBar)
+    return render_template("home.html", directoryData=directoryData, fileData=fileData, parentDirectory=directory, navBar=navBar)
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
@@ -219,3 +235,53 @@ def deleteFolder():
     client.delete(entity_key)
 
     return redirect(url_for("home", id=request.form['idParent']))
+
+@app.route('/uploadFile', methods=['POST'])
+def uploadFile():
+    #CHECK IF USER IS LOGGED IN
+    if not session.get('email'):
+        return redirect(url_for("login"))
+
+    file = request.files['file_name']
+    
+    fileEntity  = datastore.Entity(key = client.key('File'))
+    user        = client.key('User', int(session['id']))
+
+    fileEntity.update({
+        'path' : request.form['path'] + file.filename,
+        'User' : user,
+        'users_shared' : []
+    })
+
+    client.put(fileEntity)
+
+    addFile(request.form['path'], file)
+
+    return redirect(url_for("home", id=request.form['idParent']))
+
+@app.route("/deleteFile", methods=['POST'])
+def deleteFile():
+    #CHECK IF USER IS LOGGED IN
+    if not session.get('email'):
+        return redirect(url_for("login"))
+
+    delete_blob(request.form['path'])
+
+    entity_key  = client.key("File", int(request.form['idFile']))
+    client.delete(entity_key)
+
+    return redirect(url_for("home", id=request.form['idParent']))
+
+@app.route("/downloadFile", methods=['POST'])
+def downloadFile():
+    #CHECK IF USER IS LOGGED IN
+    if not session.get('email'):
+        return redirect(url_for("login"))
+
+    name = request.form['filename']
+    path = request.form['path']
+
+    if not path:
+        return False
+
+    return Response(downloadBlob(path), mimetype='application/octet-stream', headers={"Content-Disposition": "filename=" + name})
