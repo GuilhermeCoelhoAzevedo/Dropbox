@@ -33,6 +33,18 @@
             </svg>
             New folder
         </a>
+
+        <div class="dropdown show">
+            <a class="btn btn-dark dropdown-toggle" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Duplicates
+                <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                <li><a onclick="find_duplicates(false)" href="#">Check duplicates in this folder</a></li>
+                <li role="separator" class="divider"></li>
+                <li><a onclick="find_duplicates(true)" href="#">Check duplicates in Dropbox</a></li>
+            </ul>
+        </div>
     </div>
 
     <table class="table table-hover">

@@ -53,6 +53,29 @@ function create_folder(){
     
     document.getElementById('modal-cancel').click();
 };
+
+function find_duplicates(lookAll){
+    var file_data = {
+        idParent: window.location.pathname.substring(6),
+        lookAll: lookAll
+    };
+    
+    $.ajax({
+        url: '/findDuplicates',
+        type: 'POST',
+        data: JSON.stringify(file_data),
+        dataType: 'json',
+        contentType: 'application/json',
+        success: function (result, status, request) {
+            duplicatesModal(result);
+        },
+
+        error: function (event, jqxhr, settings, thrownError) {
+            alert('Error to filter data. Please try again!');
+        }
+    });
+};
+
 /***********************************************************************************/
 /********************************Firebase functions*********************************/
 /***********************************************************************************/
@@ -133,7 +156,7 @@ function validateNameFolder(){
     }
 
     return true;
-}
+};
 
 function initialModalValues(){
     $("#modal-action").show();
@@ -166,4 +189,28 @@ function confirmDelete(form){
     $("#modal-action").attr("onclick", "form_action.submit()");
 
     $('#myModal').modal('show');
-}
+};
+
+function duplicatesModal(result) {
+    initialModalValues();
+
+    $("#myModalLabel").text("Duplicated files: ");
+    
+    if(result.length > 0){
+        $(".modal-body").html("")
+        $.each(result, function(i, item) {
+            $(".modal-body").append("<label>Duplicated files:</label><br>");
+            $.each(item, function(j, file) {
+                $(".modal-body").append('<p>' + file + '</p>');
+            });
+            $(".modal-body").append('<hr size="30" noshade>');
+        });
+
+    }else{
+        $(".modal-body").css('text-align', 'center');
+        $(".modal-body").html('<h2>There are no duplicated files!<h2>');
+    }
+
+    $("#modal-action").hide();
+    $('#myModal').modal('show');
+};

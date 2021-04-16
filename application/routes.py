@@ -311,3 +311,60 @@ def downloadFile():
         return False
 
     return Response(downloadBlob(path), mimetype='application/octet-stream', headers={"Content-Disposition": "filename=" + name})
+
+@app.route("/findDuplicates", methods=['POST'])
+def findDuplicates():
+    #CHECK IF USER IS LOGGED IN
+    if not session.get('email'):
+        return redirect(url_for("login"))
+
+    #AJAX FOR DUPLICATED FILES
+    if request.method == 'POST':
+        if request.is_json:         
+            parameters = request.get_json(force=True)
+
+            if not parameters:
+                return False
+
+            if not parameters['idParent']:
+                folder = session['home']
+            else:
+                folder = parameters['idParent']
+
+            if parameters['lookAll']:
+                directory = client.get(client.key('Directory', int(session['home'])))
+                blob_list = blobList(directory["path"])
+            else:
+                directory = client.get(client.key('Directory', int(folder)))
+                blob_list = blobList(directory["path"], "/")
+            
+            files_duplicated    = []
+            return_list         = []
+            hash_storage    	= {}
+            
+            #GETTING HASH FILES
+            for i in blob_list:
+                if i.name[-1] == "/":
+                    continue
+                
+                if i.md5_hash not in hash_storage:
+                    hash_storage[i.md5_hash]=[]
+                
+                hash_storage[i.md5_hash].append(i.name)
+
+            #CHECKING DUPLICATES
+            for key, r_files in hash_storage.items():
+                if len(r_files) <= 1:
+                    continue
+
+                for path in r_files:
+                    x       = list(re.finditer('/', path))[0]
+                    name    = path[x.end():]
+
+                    files_duplicated.append(name)
+
+                return_list.append(files_duplicated)
+                files_duplicated = []
+
+            results = json.dumps(return_list)
+            return results
