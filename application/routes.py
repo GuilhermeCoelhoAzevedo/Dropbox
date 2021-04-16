@@ -228,6 +228,32 @@ def deleteFolder():
 
     user = client.key('User', int(session['id']))
 
+    #CHECKING IF THERE IS STILL FOLDERS INSIDE
+    query = client.query(kind='Directory')
+    query.add_filter("User", "=", user)
+    dirData = query.fetch()
+    folderName = request.form['path'][len(request.form['pathParent']):-1]
+
+    for element in dirData:
+        if element['path'] == request.form['path']:
+            continue
+
+        if request.form['path'] in element['path']:
+            flash(f"{folderName} still has folders inside!", "danger")
+            
+            return redirect(url_for("home", id=request.form['idParent']))
+
+    #CHECKING IF THERE IS STILL FILES INSIDE
+    query = client.query(kind='File')
+    query.add_filter("User", "=", user)
+    fileData = query.fetch()
+
+    for element in fileData:
+        if request.form['path'] in element['path']:
+            flash(f"{folderName} still has files inside!", "danger")
+            
+            return redirect(url_for("home", id=request.form['idParent']))
+
     #DELETING FOLDER
     delete_blob(request.form['path'])
 
