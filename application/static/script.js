@@ -1,6 +1,10 @@
 /***********************************************************************************/
 /********************************General functions**********************************/
 /***********************************************************************************/
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip();
+});
+
 if(document.getElementById('sign-out')) {
     document.getElementById('sign-out').onclick = function() {
         // ask firebase to sign out the user
@@ -22,7 +26,7 @@ if(document.getElementById('myFile')) {
 function create_folder(){
     if(! validateNameFolder()){
         return false;
-    }
+    };
     
     var dir = {
         folder: document.getElementById('input_info').value.trim() + "/",
@@ -76,6 +80,15 @@ function find_duplicates(lookAll){
     });
 };
 
+function share_file(){    
+    if(! validateEmail()){
+        return false;
+    };
+
+    idFile = '#' + $("#idFile").val();
+    $(idFile).append('<input type="hidden" name="email" value="' + $("#input_info").val().toLowerCase() + '">');
+    $(idFile).submit();
+};
 /***********************************************************************************/
 /********************************Firebase functions*********************************/
 /***********************************************************************************/
@@ -144,18 +157,24 @@ $(document).ready(function(e) {
     });
 });
 
-function validateNameFolder(){
-    var folder  = document.getElementById('input_info').value;
-    var regex   = /^[A-Za-z0-9. _-]+$/
+function modalShare(id){
+    initialModalValues();
 
-    if (! regex.test(folder)) {
-        $("#modal-error").text("Folder name not valid! Don't use specials characters (/)");
-        $("#modal-error").css("display", "unset");
-        
-        return false;
-    }
+    //TITLE
+    $("#myModalLabel").text("Share file");
 
-    return true;
+    //BODY
+    $(".modal-body").html("<p>Email</p>");
+    $(".modal-body").append('<p><input id="input_info" name="input_info" required type="email" value=""></p>');
+    $(".modal-body").append('<p id="modal-error" class="modal-error">Error</p>');
+    $(".modal-body").append('<input id="idFile" type="hidden" name="email" value="' + id + '">');
+
+    //FOOTER
+    $("#modal-action").text("Share");
+    $("#modal-action").attr("idFile", id);
+    $("#modal-action").attr("onclick", "share_file()");
+    
+    $('#myModal').modal('show');
 };
 
 function initialModalValues(){
@@ -181,7 +200,7 @@ function confirmDelete(form){
         $("#myModalLabel").text("Delete folder?");
         //BODY
         $(".modal-body").html("<p>Are you sure do you want to delete this folder?</p>");
-    }
+    };
 
     //FOOTER
     $("#modal-action").text("Confirm");
@@ -213,4 +232,31 @@ function duplicatesModal(result) {
 
     $("#modal-action").hide();
     $('#myModal').modal('show');
+};
+
+function validateNameFolder(){
+    var folder  = document.getElementById('input_info').value;
+    var regex   = /^[A-Za-z0-9. _-]+$/
+
+    if (! regex.test(folder)) {
+        $("#modal-error").text("Folder name not valid! Don't use specials characters (/)");
+        $("#modal-error").css("display", "unset");
+        
+        return false;
+    };
+
+    return true;
+};
+
+function validateEmail(){
+    var email = document.getElementById('input_info').value;
+
+    if(! /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test( email ) ) {
+        $("#modal-error").text("Insert a valid email!");
+        $("#modal-error").css("display", "unset");
+        
+        return false;
+    };
+
+    return true;     
 };

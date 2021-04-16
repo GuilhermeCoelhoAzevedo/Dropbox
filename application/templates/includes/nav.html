@@ -11,6 +11,10 @@
         </div>
 
         {% if session['email'] %}        
+        <ul class="nav navbar-nav">
+            <li class="{% if shared %}active{% endif %}"><a href="{{ url_for('sharedFiles') }}">Shared with me</a></li>
+        </ul>  
+        
         <ul class="nav navbar-nav navbar-right">
             <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">{{ session['email'] }}<span class="caret"></span></a>
                 <ul class="dropdown-menu">

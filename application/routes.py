@@ -368,3 +368,80 @@ def findDuplicates():
 
             results = json.dumps(return_list)
             return results
+
+@app.route("/shareFile", methods=['POST'])
+def shareFile():
+    #CHECK IF USER IS LOGGED IN
+    if not session.get('email'):
+        return redirect(url_for("login"))
+
+    email       = request.form['email']
+    id_return   = request.form['idParent']
+    id_file     = request.form['idFile']
+
+    if session['email'] == email:
+        flash("You can't share a file with yourself!", "danger")
+        return redirect(url_for("home", id=id_return))
+
+    query = client.query(kind='User')
+    query.add_filter("email", "=", email)
+    userData = list(query.fetch())
+
+    if userData:
+        for element in userData:
+            user = element
+    else:
+        flash("File not shared! Email doesn't exist in the system.", "danger")
+        return redirect(url_for("home", id=id_return))
+
+
+    file = client.get(client.key('File', int(id_file)))
+    users_shared = file['users_shared']
+
+    if user.key.id in users_shared:
+        flash(f"File already shared with {email}", "danger")
+        return redirect(url_for("home", id=id_return))        
+
+    users_shared.append(user.key.id)
+
+    file.update({
+        'users_shared' : users_shared
+    })
+
+    client.put(file)
+    
+    flash(f"File shared with {email}", "success")
+
+    return redirect(url_for("home", id=id_return))
+
+@app.route("/sharedFiles")
+def sharedFiles():
+    #CHECK IF USER IS LOGGED IN
+    if not session.get('email'):
+        return redirect(url_for("login"))
+
+    fileData    = []
+    user        = client.get(client.key('User', int(session['id'])))
+
+    query       = client.query(kind='File')
+    files       = list(query.fetch())
+
+    for element in files:
+        if element['path'][-1:] == "/":
+            continue
+
+        if user.key.id in element['users_shared']:
+            owner   = client.get(element['User'])
+            x       = list(re.finditer('/', element['path']))[-1]
+            name    = element['path'][x.end():]
+
+            config = {
+                "name": name,
+                "id": element.key.id,
+                "path": element['path'],
+                "owner": owner['email']
+            }
+
+            fileData.append(config)            
+
+    return render_template("sharedFiles.html", fileData=fileData, shared=True)
