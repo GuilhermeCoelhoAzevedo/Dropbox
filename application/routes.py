@@ -30,6 +30,7 @@ def home(id=""):
         return render_template('login.html', login=True)
 
     directoryData   = []
+    navBar          = []
     user            = client.key('User', int(session['id']))
 
     query       = client.query(kind='Directory')
@@ -61,8 +62,27 @@ def home(id=""):
     count           = 0
     path            = ""
     navList         = list(re.finditer('/', directory['path']))
+
+    #CREATING NAVEGATION MENU
+    for x in navList:
+        path  += directory['path'][startc:x.end()]
+        folder = directory['path'][startc:x.start()]
+        startc = x.start() + 1
+        count += 1
+        active = 0
+
+        if count == 1:
+            folder = "Home"
+
+        if count == len(navList):
+            active = 1
     
-    return render_template("home.html", directoryData=directoryData, parentDirectory=directory)
+        for element in pathData:
+            if element['path'] == path:
+                navBar.append({"folder" : folder, "id" : element.key.id, "active" : active})
+                break
+
+    return render_template("home.html", directoryData=directoryData, parentDirectory=directory, navBar=navBar)
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():

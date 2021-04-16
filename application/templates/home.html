@@ -1,6 +1,15 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<div class="navMenu">
+    {% for menu in navBar %}
+    {% if menu['active']==0 %}
+    <a href="{{ url_for('home', id=menu['id']) }}">{{ menu['folder'] }} > </a>
+    {% else %}
+    <a class="navActive">{{ menu['folder'] }}</a>
+    {% endif %}
+    {% endfor %}
+</div>
 <div>
     <div class="home-options">
         <a id="btn-NewFolder" class="btn btn-dark" data-toggle="modal">
