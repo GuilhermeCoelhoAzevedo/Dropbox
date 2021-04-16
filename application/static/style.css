@@ -1,0 +1,180 @@
+/******************************************************************************/
+/***************************** GENERAL RULES **********************************/
+/******************************************************************************/
+:root {
+    --gray: #53585D;
+    --darkGray: #303336;
+    --red: #d63031;
+}
+
+#flashMessage {
+    margin-top: -20px;
+}
+
+#uploadFileForm label{
+    cursor: pointer;
+    text-align: center;
+    border-radius: 4px;
+    margin-bottom: 0;
+    white-space: nowrap;
+    vertical-align: middle;
+    touch-action: manipulation;
+    background-image: none;
+    border: 1px solid transparent;
+    line-height: 1.42857143;
+    user-select: none;
+    margin-right: 20px;
+}
+
+#uploadFileForm label,
+.btn {
+    display: inline-block;
+    width: 125px;
+    box-sizing: border-box;
+    padding: 7px 10px;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 14px;
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+}
+
+.btn-dark,
+.btn-dark:active {
+    color: white;
+    background-color: var(--gray);
+    border-color: var(--gray);
+}
+.btn-dark:focus,
+.btn-dark:hover {
+    color: white;
+    background-color: var(--darkGray);
+    border-color: var(--darkGray);
+}
+
+#uploadFileForm label,
+#uploadFileForm label:active{
+    color: white;
+    background-color: #034080;
+    border-color: #034080;
+}
+
+#uploadFileForm label:focus,
+#uploadFileForm label:hover {
+    color: white;
+    background-color: #00254d;
+    border-color: #00254d;
+}
+
+th{
+    font-size: 18px;
+}
+
+td a, td a:hover, td a:focus, td a:active  { 
+    display: block; 
+    text-decoration: none;
+    color: inherit;
+    font-size: 14px;
+}
+
+.navMenu {
+    margin-bottom: 30px;
+}
+.navMenu a{
+    text-decoration: none;
+    color: inherit;
+    font-size: 25px;
+}
+.navActive{
+    font-weight: bold;
+    color: black;
+}
+
+.home-options{
+    display: flex;
+    margin-bottom: 10px;
+}
+
+input[type=file] {
+    opacity: 0;
+    width: 0.1px;
+    height: 0.1px;
+    position: absolute;
+}
+
+svg {
+    margin-right: 5px;
+}
+
+#sign-out{
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+}
+
+.glyphicon{
+    margin-right: 5px;
+}
+
+.file-download{
+    cursor: pointer;
+}
+
+.flex-container{
+    display: flex;
+    justify-content: flex-end;
+}
+
+.bi-three-dots,
+.bi-person-plus,
+.bi-trash{
+    margin-right: 20px;
+    cursor: pointer;
+    padding: 5px 5px;
+}
+
+.bi-three-dots:hover,
+.bi-person-plus:hover,
+.bi-trash:hover{
+    background-color: #babec2;
+}
+
+#btn-NewFolder{
+    margin-right: 20px;
+}
+/******************************************************************************/
+/***************************** MODAL FORM**************************************/
+/******************************************************************************/
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.modal label,
+.modal h3 {
+    font-weight: bold;
+}
+
+.modal input {
+    display: block;
+    height: 57px;
+    font-size: 18px;
+    margin-right: 30px;
+    outline: 0;
+    border: 0;
+    border-bottom: 2px solid var(--gray);
+    width: 100%;
+}
+
+.modal input:focus {
+    border-bottom-color: black
+}
+
+.modal-error {
+    color: red;
+    font-weight: bold;
+    display: none;
+}
