@@ -1,4 +1,5 @@
 from application import app, client
+from application.storage import blobList, addDirectory, delete_blob, downloadBlob
 
 from flask import Flask, render_template, request, session, url_for, redirect, flash, json, jsonify, Response
 
@@ -20,7 +21,48 @@ def home(id=""):
     if not session.get('email'):
         return redirect(url_for("login"))
 
-    return render_template("home.html")
+    if not id:
+        id = session['home']
+        
+    directory = client.get(client.key('Directory', int(id)))
+
+    if not directory:
+        return render_template('login.html', login=True)
+
+    directoryData   = []
+    user            = client.key('User', int(session['id']))
+
+    query       = client.query(kind='Directory')
+    query.add_filter("User", "=", user)
+    pathData    = list(query.fetch())
+
+    blob_list   = blobList(directory["path"], "/")
+
+    #GETTING FILES
+    for i in blob_list:
+        if i.name == directory["path"]:
+            continue
+
+    #GETTING FOLDERS
+    for prefix in blob_list.prefixes:
+        for element in pathData:
+            if element['path'] == prefix:
+                config = {
+                    "name": prefix[len(directory["path"]):-1],
+                    "id": element.key.id,
+                    "path": prefix
+                }
+
+                directoryData.append(config)
+ 
+    directoryData.sort(key=itemgetter('name'))
+    
+    startc          = 0
+    count           = 0
+    path            = ""
+    navList         = list(re.finditer('/', directory['path']))
+    
+    return render_template("home.html", directoryData=directoryData, parentDirectory=directory)
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
@@ -93,3 +135,67 @@ def logout():
 
     return redirect(url_for('login'))
 
+@app.route("/createFolder", methods=['POST'])
+def createFolder():
+    #CHECK IF USER IS LOGGED IN
+    if not session.get('email'):
+        return redirect(url_for("login"))
+
+    #AJAX FOR CREATE FOLDER
+    if request.method == 'POST':
+        if request.is_json:         
+            parameters      = request.get_json(force=True)
+            status          = []
+
+            if not parameters['folder']:
+                return False
+
+            if parameters['id']:
+                idParent = parameters['id']
+            else:
+                idParent = session['home']
+
+            parent_dir  = client.get(client.key('Directory', int(idParent)))
+            direc       = datastore.Entity(key = client.key('Directory'))
+            user        = client.key('User', int(session['id']))
+            folder      = parameters['folder'].strip()
+
+            query = client.query(kind='Directory')
+            query.add_filter("User", "=", user)
+            query.add_filter("path", "=", parent_dir['path'] + folder)
+            pathData = list(query.fetch())
+
+            if not pathData:
+                direc.update({
+                    'path' : parent_dir['path'] + folder,
+                    'User' : user
+                })
+
+                client.put(direc)
+
+                addDirectory(parent_dir['path'] + folder)
+
+                status.append([0, direc.key.id])
+            else:
+                flash(f"{folder[:-1]} folder already exist in the current folder!", "danger")
+                status.append([1, "Folder already exist!"])
+
+            results = json.dumps(status)
+
+            return results
+
+@app.route("/deleteFolder", methods=['POST'])
+def deleteFolder():
+    #CHECK IF USER IS LOGGED IN
+    if not session.get('email'):
+        return redirect(url_for("login"))
+
+    user = client.key('User', int(session['id']))
+
+    #DELETING FOLDER
+    delete_blob(request.form['path'])
+
+    entity_key  = client.key("Directory", int(request.form['idFolder']))
+    client.delete(entity_key)
+
+    return redirect(url_for("home", id=request.form['idParent']))
