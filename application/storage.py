@@ -1,6 +1,9 @@
 from application import storage_client, bucket
 import local_constants
 
+def getBlob(path):    
+    return bucket.get_blob(path)
+
 def blobList(prefix, delimiter=None):    
     return storage_client.list_blobs(local_constants.PROJECT_STORAGE_BUCKET, prefix=prefix, delimiter=delimiter)
 

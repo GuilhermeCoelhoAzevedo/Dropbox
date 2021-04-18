@@ -1,5 +1,5 @@
 from application import app, client
-from application.storage import blobList, addDirectory, addFile, delete_blob, downloadBlob
+from application.storage import blobList, addDirectory, addFile, delete_blob, downloadBlob, getBlob
 
 from flask import Flask, render_template, request, session, url_for, redirect, flash, json, jsonify, Response
 
@@ -262,6 +262,43 @@ def deleteFolder():
 
     return redirect(url_for("home", id=request.form['idParent']))
 
+@app.route('/checkFile', methods=['POST'])
+def checkFile():
+    #CHECK IF USER IS LOGGED IN
+    if not session.get('email'):
+        return redirect(url_for("login"))
+
+    #AJAX FOR CHECKING IF FILE EXIST
+    if request.method == 'POST':
+        if request.is_json:         
+            parameters      = request.get_json(force=True)
+            blob_exist      = []
+
+            if not parameters['file']:
+                return False
+
+            if parameters['idPath']:
+                idPath = parameters['idPath']
+            else:
+                idPath = session['home']
+
+            x           = list(re.finditer('/', parameters['file']))[-1]
+            file        = parameters['file'][x.end():]
+
+            directory   = client.get(client.key('Directory', int(idPath)))
+            path        = directory['path'] + file
+
+            blob = getBlob(path)
+
+            if blob:
+                blob_exist.append([True, file])
+            else:
+                blob_exist.append([False, file])
+
+            results = json.dumps(blob_exist)
+
+            return results
+
 @app.route('/uploadFile', methods=['POST'])
 def uploadFile():
     #CHECK IF USER IS LOGGED IN
@@ -273,13 +310,18 @@ def uploadFile():
     fileEntity  = datastore.Entity(key = client.key('File'))
     user        = client.key('User', int(session['id']))
 
-    fileEntity.update({
-        'path' : request.form['path'] + file.filename,
-        'User' : user,
-        'users_shared' : []
-    })
+    query       = client.query(kind='File')
+    query.add_filter("path", "=", request.form['path'] + file.filename)
+    fileData    = list(query.fetch())
 
-    client.put(fileEntity)
+    if not fileData:
+        fileEntity.update({
+            'path' : request.form['path'] + file.filename,
+            'User' : user,
+            'users_shared' : []
+        })
+
+        client.put(fileEntity)
 
     addFile(request.form['path'], file)
 

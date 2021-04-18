@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2>Shared files</h2>
+<div>
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Owner</th>
+            </tr>
+        </thead>
+        
+        <tbody id="directory_tbody">
+            {% for data in fileData %}
+            <tr>
+                <td>
+                    <form action="{{ url_for('downloadFile') }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="path" value="{{ data['path'] }}"/>
+                        <input type="hidden" name="filename" value="{{ data['name'] }}"/>
+                        <a class="file-download" onclick='this.parentNode.submit();'>
+                            <span class="glyphicon glyphicon-file" aria-hidden="true"></span>
+                            {{ data['name'] }}
+                        </a>
+                    </form>
+                </td>
+                <td>{{data['owner']}}</td>
+            </tr>
+            {% endfor %}        
+        </tbody>
+    </table>
+</div>
+{% endblock %}

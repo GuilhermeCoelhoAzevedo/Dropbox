@@ -18,8 +18,40 @@ setTimeout(function() {
 
 if(document.getElementById('myFile')) {
     document.getElementById('myFile').onchange = function() {
-        document.getElementById('uploadFileForm').submit()
-        document.getElementById('myFile').value = "";
+        if(! document.getElementById('myFile').value){
+            return false;
+        };
+
+        var par = {
+            file: document.getElementById('myFile').value.replaceAll(String.fromCharCode(92),"/").trim(),
+            idPath: window.location.pathname.substring(6)
+        };
+
+        console.log(par['file']);
+
+        $.ajax({
+            url: '/checkFile',
+            type: 'POST',
+            data: JSON.stringify(par),
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function (result, status, request) {
+                $.each(result, function(i, item) {
+                    if(result[0][0]){
+                        //CONFIRM REPLACEMENT OF CURREN FILE
+                        modalConfirmUpload(result[0][1]);
+                    }else{
+                        //UPLOAD FILE 
+                        document.getElementById('uploadFileForm').submit();
+                    }
+                   
+                });
+            },
+
+            error: function (event, jqxhr, settings, thrownError) {
+                alert('Error to filter data. Please try again!');
+            }
+        });
     };
 };
 
@@ -43,7 +75,14 @@ function create_folder(){
             $.each(result, function(i, item) {
                 if(item[0] == 0){
                     document.getElementById('modal-cancel').click();
-                    window.location.replace(window.location.href.replace(dir['id'], item[1]));
+
+                    if(dir['id']){
+                        window.location.replace(window.location.href.replace(dir['id'], item[1]));
+                    } else{
+                        url_dest = '/home/' + item[1];
+                        window.location.assign(url_dest);
+                    };
+    
                 }else{
                     location.reload();
                 }
@@ -156,6 +195,22 @@ $(document).ready(function(e) {
         $('#myModal').modal('show');
     });
 });
+
+function modalConfirmUpload(file){
+    initialModalValues();
+
+    //TITLE
+    $("#myModalLabel").text("Replace file");
+
+    //BODY
+    $(".modal-body").html("<p>The file <b>" + file + "</b> already exists. Would you like to replace it?</p>");
+
+    //FOOTER
+    $("#modal-action").text("Replace file");
+    $("#modal-action").attr("onclick", "document.getElementById('uploadFileForm').submit();");
+    
+    $('#myModal').modal('show');
+};
 
 function modalShare(id){
     initialModalValues();
