@@ -72,6 +72,14 @@ th{
     font-size: 18px;
 }
 
+td{
+    vertical-align: middle !important;
+}
+
+.div-options {
+    width: 20px;   
+}
+
 td a, td a:hover, td a:focus, td a:active  { 
     display: block; 
     text-decoration: none;

@@ -64,7 +64,7 @@
                     {{ data['name'] }}
                 </a>
             </td>
-            <td align="right">
+            <td class="div-options" align="right">
                 <div class="flex-container">
                     <form action="{{ url_for('deleteFolder') }}" onclick="return confirmDelete(this);" method="POST">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -95,7 +95,7 @@
                     </a>
                 </form>
             </td>
-            <td align="right">
+            <td class="div-options" align="right">
                 <div class="flex-container">
                     <form id="share-file-{{ data['id'] }}" action="{{ url_for('shareFile') }}" method="POST">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>

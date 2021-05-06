@@ -14,8 +14,8 @@ import hashlib
 firebase_request_adapter = requests.Request()
 
 @app.route("/")
-@app.route("/home", methods=['GET', 'POST'])
-@app.route("/home/<id>", methods=['GET', 'POST'])
+@app.route("/home")
+@app.route("/home/<id>")
 def home(id=""):
     #CHECK IF USER IS LOGGED IN
     if not session.get('email'):
@@ -165,6 +165,10 @@ def login():
 
 @app.route("/logout")
 def logout():
+    #CHECK IF USER IS LOGGED IN
+    if not session.get('email'):
+        return redirect(url_for("login"))
+
     session.pop('id', None)
     session.pop('email', None)
     session.pop('home', None)
