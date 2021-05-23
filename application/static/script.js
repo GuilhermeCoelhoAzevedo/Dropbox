@@ -27,8 +27,6 @@ if(document.getElementById('myFile')) {
             idPath: window.location.pathname.substring(6)
         };
 
-        console.log(par['file']);
-
         $.ajax({
             url: '/checkFile',
             type: 'POST',
@@ -169,7 +167,7 @@ function initializeAuth(){
 $(document).ready(function(e) {
     $('#myModal').modal({
         backdrop: 'static',
-        keyboard: true,
+        keyboard: false,
         show: false,
     });
 
@@ -208,7 +206,9 @@ function modalConfirmUpload(file){
     //FOOTER
     $("#modal-action").text("Replace file");
     $("#modal-action").attr("onclick", "document.getElementById('uploadFileForm').submit();");
-    
+    $("#modal-cancel").attr("onclick", "document.getElementById('myFile').value = '';");
+    $("#modal-quit").attr("onclick", "document.getElementById('myFile').value = '';");
+
     $('#myModal').modal('show');
 };
 
