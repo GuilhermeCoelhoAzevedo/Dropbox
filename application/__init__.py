@@ -6,9 +6,24 @@ from authlib.integrations.flask_client import OAuth
 
 # --- Authlib OAuth Setup ---
 def register_google_oauth(app):
-    if not app.config['GOOGLE_CLIENT_ID'] or not app.config['GOOGLE_CLIENT_SECRET']:
+    if not app.config['GOOGLE_CLIENT_ID']:
         raise RuntimeError(
-            "Missing Google OAuth credentials. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in your .flaskenv file."
+            "Missing Google OAuth credentials. Please set GOOGLE_CLIENT_ID in your .flaskenv file."
+        )
+
+    if not app.config['GOOGLE_CLIENT_SECRET']:
+        raise RuntimeError(
+            "Missing Google OAuth credentials. Please set GOOGLE_CLIENT_SECRET in your .flaskenv file."
+        )
+
+    if not app.config['GOOGLE_PROJECT_ID']:
+        raise RuntimeError(
+            "Missing Google OAuth credentials. Please set GOOGLE_PROJECT_ID in your .flaskenv file."
+        )
+
+    if not app.config['GOOGLE_PROJECT_STORAGE_BUCKET']:
+        raise RuntimeError(
+            "Missing Google OAuth credentials. Please set GOOGLE_PROJECT_STORAGE_BUCKET in your .flaskenv file."
         )
 
     oauth = OAuth(app)
@@ -31,8 +46,8 @@ csrf = CSRFProtect()
 csrf.init_app(app)
 
 google          = register_google_oauth(app)
-client          = datastore.Client(project=app.config['PROJECT_NAME'])
-storage_client  = storage.Client(project=app.config['PROJECT_NAME'])
-bucket          = storage_client.bucket(app.config['PROJECT_STORAGE_BUCKET'])
+client          = datastore.Client(project=app.config['GOOGLE_PROJECT_ID'])
+storage_client  = storage.Client(project=app.config['GOOGLE_PROJECT_ID'])
+bucket          = storage_client.bucket(app.config['GOOGLE_PROJECT_STORAGE_BUCKET'])
 
 from application import routes

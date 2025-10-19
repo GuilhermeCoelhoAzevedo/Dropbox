@@ -4,7 +4,7 @@ def getBlob(path):
     return bucket.get_blob(path)
 
 def blobList(prefix, delimiter=None):    
-    return storage_client.list_blobs(app.config['PROJECT_STORAGE_BUCKET'], prefix=prefix, delimiter=delimiter)
+    return storage_client.list_blobs(app.config['GOOGLE_PROJECT_STORAGE_BUCKET'], prefix=prefix, delimiter=delimiter)
 
 def addDirectory(directory_name):
     blob = bucket.blob(directory_name)

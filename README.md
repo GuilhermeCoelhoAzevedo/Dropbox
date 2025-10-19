@@ -47,8 +47,8 @@ GOOGLE_CLIENT_ID=replace-with-your-google-client-id
 GOOGLE_CLIENT_SECRET=replace-with-your-google-client-secret
 
 # --- Google Storage settings ---
-PROJECT_NAME=replace-with-your-project-id
-PROJECT_STORAGE_BUCKET=replace-with-your-project-storage-bucket-id
+GOOGLE_PROJECT_ID=replace-with-your-project-id
+GOOGLE_PROJECT_STORAGE_BUCKET=replace-with-your-project-storage-bucket-id
 ```
 ---
 
