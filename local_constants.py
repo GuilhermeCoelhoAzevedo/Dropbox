@@ -1,2 +1,0 @@
-PROJECT_NAME='dropbox-309912'
-PROJECT_STORAGE_BUCKET='dropbox-309912.appspot.com'

@@ -1,0 +1,13 @@
+# --- Flask Settings ---
+FLASK_APP=application.py
+FLASK_ENV=development
+
+# --- Security ---
+SECRET_KEY=replace-with-your-secret-key
+
+# --- Google Cloud ---
+GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/service-account.json
+
+# --- Google OAuth 2.0 ---
+GOOGLE_CLIENT_ID=replace-with-your-google-client-id
+GOOGLE_CLIENT_SECRET=replace-with-your-google-client-secret

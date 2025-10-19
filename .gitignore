@@ -1,0 +1,23 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environment
+.venv/
+venv/
+
+# Flask environment file (contains secrets)
+.flaskenv
+
+# Google Cloud credentials
+service-account.json
+
+# Local settings or configs
+instance/
+
+# macOS and Windows system files
+.DS_Store
+Thumbs.db
+
+#Idea
+.idea/
