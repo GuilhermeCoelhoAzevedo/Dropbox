@@ -1,12 +1,12 @@
-# 🏨 Room Scheduler App
+# 📦 Dropbox
 
 ## 🧭 Overview
 
-**Room Scheduler** is a Flask web application that allows users to:
+**Dropbox** is a Flask web application that allows users to:
 1. Sign in securely with **Google OAuth 2.0**.  
-2. Create and manage **rooms** and **bookings**.  
+2. Create **folders**, upload and share **files** with other users.  
 3. Store all data in **Google Cloud Datastore**.  
-4. Support real-time validation and dynamic booking filters.
+4. Support real-time validation.
 
 ---
 
@@ -15,6 +15,7 @@
 - **Python 3.13+**
 - **Google Cloud Project** with Datastore API enabled  
 - A valid **OAuth 2.0 Client ID** from [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+- A valid **Bucket ID** from [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
 - A **service account key file** (`service-account.json`)
 
 To install all required packages:
@@ -44,6 +45,10 @@ GOOGLE_APPLICATION_CREDENTIALS=/absolute/path/to/service-account.json
 # --- Google OAuth 2.0 ---
 GOOGLE_CLIENT_ID=replace-with-your-google-client-id
 GOOGLE_CLIENT_SECRET=replace-with-your-google-client-secret
+
+# --- Google Storage settings ---
+PROJECT_NAME=replace-with-your-project-id
+PROJECT_STORAGE_BUCKET='replace-with-your-project-storage-bucket-id'
 ```
 ---
 
@@ -70,13 +75,14 @@ You’ll be prompted to log in with your Google account before accessing the sys
 
 ## 📂 Project Structure
 ```bash
-RoomScheduler/
+Dropbox/
 ├── application/              # Main Flask application package
 │   ├── static/               # CSS, JS, and assets
 │   ├── templates/            # Jinja2 templates (HTML)
 │   ├── __init__.py
 │   ├── forms.py              # WTForms definitions
-│   └── routes.py             # All Flask routes and logic
+│   ├── routes.py             # All Flask routes and logic
+│   └── storage.py            # All bucket storage logic
 │
 ├── .flaskenv                 # Local environment file (ignored in .git)
 ├── .flaskenv.example         # Template for environment setup
@@ -84,7 +90,6 @@ RoomScheduler/
 ├── .app.py                   # Flask starter file
 ├── app.yaml                  # App general configurations
 ├── config.py                 # Configuration loaded from environment
-├── index.yaml                # Indexes
 ├── README.md
 ├── requirements.txt          # Python dependencies
 └── service-account.json      # Google service account credentials (ignored in .git)
@@ -97,6 +102,7 @@ RoomScheduler/
 - **Flask** – Web framework
 - **Authlib** – OAuth 2.0 authentication
 - **Google Cloud Datastore** – NoSQL database
+- **Google Cloud Storage** – Storing unstructured data
 - **WTForms** – Form validation
 - **Jinja2** – Template rendering
 

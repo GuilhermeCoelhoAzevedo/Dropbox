@@ -1,6 +1,9 @@
 import os
 
 class Config(object):
-    SECRET_KEY = os.environ.get('SECRET_KEY') or b'\x07;\x8ck\xdd`\xe8u\xb3\xa5i2\xdel\xca\xee\xcd\xa2\xcc\xb5(6&\xde'
-    #os.environ["GOOGLE_APPLICATION_CREDENTIALS"]= "E:\\Griffith\\CPA\\dropbox-309912-1595a846859a.json"
-    
+    SECRET_KEY = os.environ.get("SECRET_KEY")
+    GOOGLE_APPLICATION_CREDENTIALS = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+    GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
+    PROJECT_NAME = os.environ.get("PROJECT_NAME")
+    PROJECT_STORAGE_BUCKET = os.environ.get("PROJECT_STORAGE_BUCKET")

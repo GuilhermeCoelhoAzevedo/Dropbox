@@ -1,17 +1,12 @@
-from application import app, client
+from application import app, client, google
 from application.storage import blobList, addDirectory, addFile, delete_blob, downloadBlob, getBlob
 
-from flask import Flask, render_template, request, session, url_for, redirect, flash, json, jsonify, Response
+from flask import render_template, request, session, url_for, redirect, flash, json, Response
 
 from google.cloud import datastore
-import google.oauth2.id_token
-from google.auth.transport import requests
 
 from operator import itemgetter
 import re
-import hashlib
-
-firebase_request_adapter = requests.Request()
 
 @app.route("/")
 @app.route("/home")
@@ -29,7 +24,7 @@ def home(id=""):
     if not directory:
         return render_template('login.html', login=True)
 
-    fileData        = []
+    file_data       = []
     directoryData   = []
     navBar          = []
     user            = client.key('User', int(session['id']))
@@ -57,7 +52,7 @@ def home(id=""):
                     "path": element['path']
                 }
 
-                fileData.append(config)
+                file_data.append(config)
 
     #GETTING FOLDERS
     for prefix in blob_list.prefixes:
@@ -72,7 +67,7 @@ def home(id=""):
                 directoryData.append(config)
  
     directoryData.sort(key=itemgetter('name'))
-    fileData.sort(key=itemgetter('name'))
+    file_data.sort(key=itemgetter('name'))
     
     startc          = 0
     count           = 0
@@ -98,82 +93,72 @@ def home(id=""):
                 navBar.append({"folder" : folder, "id" : element.key.id, "active" : active})
                 break
 
-    return render_template("home.html", directoryData=directoryData, fileData=fileData, parentDirectory=directory, navBar=navBar)
+    return render_template("home.html", directoryData=directoryData, file_data=file_data, parentDirectory=directory, navBar=navBar)
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
-    id_token = request.cookies.get("token")
-    error_message = None
-    claims = None
-    session.pop('id', None)
-    session.pop('email', None)
-    session.pop('home', None)
+    redirect_uri = url_for('authorize', _external=True)
+    return google.authorize_redirect(redirect_uri, prompt="select_account")
 
-    if id_token:
-        try:
-            claims = google.oauth2.id_token.verify_firebase_token(id_token, firebase_request_adapter)
-            
-            #CONTROL USER SESSION
-            session['email']    = claims['email']
+@app.route("/authorize")
+def authorize():
+    token = google.authorize_access_token()
 
-            query = client.query(kind='User')
-            query.add_filter("email", "=", session['email'])
-            userData = list(query.fetch())
+    # Pass the nonce stored in the session to verify the ID token
+    user_info = google.parse_id_token(token, nonce=session.get('nonce'))
 
-            if not userData:
-                user = datastore.Entity(key = client.key('User'))
-        
-                user.update({
-                    'email' : session['email']
-                })
+    # STORE USER SESSION
+    session['email'] = user_info['email']
 
-                client.put(user)
-                session['id'] = user.key.id
+    # CHECK IF USER EXISTS
+    query = client.query(kind='User')
+    query.add_filter("email", "=", session['email'])
+    userData = list(query.fetch())
 
-                direc = datastore.Entity(key = client.key('Directory'))
+    if not userData:
+        # CREATE USER ENTITY
+        user = datastore.Entity(key=client.key('User'))
+        user.update({'email': session['email']})
+        client.put(user)
+        session['id'] = user.key.id
 
-                direc.update({
-                    'path' : session['email'] + "/",
-                    'User' : user.key
-                })
+        # Create user root directory
+        directory = datastore.Entity(key=client.key('Directory'))
 
-                client.put(direc)
+        directory.update({
+            'path': session['email'] + "/",
+            'User': user.key
+        })
 
-                addDirectory(session['email'] + "/")
-            else:
-                for user in userData:
-                    session['id'] = user.key.id
-                    path = user['email'] + '/'
+        client.put(directory)
 
-                query = client.query(kind='Directory')
-                query.add_filter("path", "=", path)
-                dirData = list(query.fetch())
+        addDirectory(session['email'] + "/")
+    else:
+        #Creates root path based on email
+        user = userData[0]
+        session['id'] = user.key.id
+        path = user['email'] + '/'
 
-                for element in dirData:
-                    direc = element
+        # Query directories with the email
+        query = client.query(kind='Directory')
+        query.add_filter(filter=("path", "=", path))
+        directories = list(query.fetch())
 
-            session['home'] = direc.key.id
-            flash(f"{claims['email']}, you are successfully logged in!", "success")
+        # Get user root directory
+        directory = next((d for d in directories if d['path'] == path), "")
 
-            return redirect(url_for("home"))
-
-        except ValueError as exc:
-            error_message = str(exc)
-            flash("Sorry, something went wrong!", "danger")
-
-    return render_template('login.html', login=True)
+    session['home'] = directory.key.id
+    flash(f"{session['email']}, you are successfully logged in!", "success")
+    return redirect(url_for("home"))
 
 @app.route("/logout")
 def logout():
-    #CHECK IF USER IS LOGGED IN
-    if not session.get('email'):
-        return redirect(url_for("login"))
+    session.clear()
+    flash("You have been logged out successfully.", "info")
 
-    session.pop('id', None)
-    session.pop('email', None)
-    session.pop('home', None)
-
-    return redirect(url_for('login'))
+    # Redirect to Google's logout URL
+    google_logout = "https://accounts.google.com/Logout"
+    return redirect(google_logout)
 
 @app.route("/createFolder", methods=['POST'])
 def createFolder():
@@ -250,9 +235,9 @@ def deleteFolder():
     #CHECKING IF THERE IS STILL FILES INSIDE
     query = client.query(kind='File')
     query.add_filter("User", "=", user)
-    fileData = query.fetch()
+    file_data = query.fetch()
 
-    for element in fileData:
+    for element in file_data:
         if request.form['path'] in element['path']:
             flash(f"{folderName} still has files inside!", "danger")
             
@@ -267,7 +252,7 @@ def deleteFolder():
     return redirect(url_for("home", id=request.form['idParent']))
 
 @app.route('/checkFile', methods=['POST'])
-def checkFile():
+def check_file():
     #CHECK IF USER IS LOGGED IN
     if not session.get('email'):
         return redirect(url_for("login"))
@@ -316,9 +301,9 @@ def uploadFile():
 
     query       = client.query(kind='File')
     query.add_filter("path", "=", request.form['path'] + file.filename)
-    fileData    = list(query.fetch())
+    file_data    = list(query.fetch())
 
-    if not fileData:
+    if not file_data:
         fileEntity.update({
             'path' : request.form['path'] + file.filename,
             'User' : user,
@@ -466,7 +451,7 @@ def sharedFiles():
     if not session.get('email'):
         return redirect(url_for("login"))
 
-    fileData    = []
+    file_data    = []
     user        = client.get(client.key('User', int(session['id'])))
 
     query       = client.query(kind='File')
@@ -488,6 +473,6 @@ def sharedFiles():
                 "owner": owner['email']
             }
 
-            fileData.append(config)            
+            file_data.append(config)            
 
-    return render_template("sharedFiles.html", fileData=fileData, shared=True)
+    return render_template("sharedFiles.html", file_data=file_data, shared=True)
